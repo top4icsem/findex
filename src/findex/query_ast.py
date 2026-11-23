@@ -56,7 +56,7 @@ class Phrase(Query):
             positions_by_term.append(positions)
             candidate_ids &= positions.keys()
 
-        result = set()
+        result: set[int] = set()
         for doc_id in candidate_ids:
             starts = positions_by_term[0][doc_id]
             if any(

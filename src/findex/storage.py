@@ -54,7 +54,7 @@ def load_index(path: Path, format: str = "pickle") -> InvertedIndex:
             data = json.load(file)
         if data.get("version") not in (1, 2):
             raise ValueError("Unsupported index version")
-        postings = {}
+        postings: dict[str, list[Posting]] = {}
         for term, raw_list in data["postings"].items():
             postings[term] = [
                 Posting(
@@ -66,7 +66,9 @@ def load_index(path: Path, format: str = "pickle") -> InvertedIndex:
                 )
                 for item in raw_list
             ]
-        documents = {meta["doc_id"]: DocMeta(**meta) for meta in data["documents"]}
+        documents: dict[int, DocMeta] = {
+            meta["doc_id"]: DocMeta(**meta) for meta in data["documents"]
+        }
         return InvertedIndex(
             postings=postings,
             documents=documents,

@@ -4,6 +4,7 @@ import argparse
 import logging
 import tracemalloc
 from collections import Counter, defaultdict
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
@@ -40,7 +41,7 @@ class Index:
         """Number of terms, like a Mapping."""
         return len(self.postings)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Iterate over terms."""
         return iter(self.postings)
 
@@ -82,7 +83,11 @@ InvertedIndex = Index
 
 
 @timed
-def build_index(root: Path, with_positions: bool = False) -> Index:
+def build_index(
+    root: Path,
+    with_positions: bool = False,
+    progress: Callable[[int], None] | None = None,
+) -> Index:
     """Build one-pass postings; token positions are optional."""
     root = Path(root)
     postings: defaultdict[str, list[Posting]] = defaultdict(list)
@@ -115,6 +120,9 @@ def build_index(root: Path, with_positions: bool = False) -> Index:
                     positions=tuple(positions_by_term[term]) if with_positions else (),
                 )
             )
+
+        if progress is not None:
+            progress(doc_id + 1)
 
     return Index(
         postings=dict(postings),

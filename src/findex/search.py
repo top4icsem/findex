@@ -14,7 +14,7 @@ PRECEDENCE = {"OR": 1, "AND": 2, "NOT": 3}
 
 def merge_and(left: list[int], right: list[int]) -> list[int]:
     """Intersect two sorted document ID lists."""
-    result = []
+    result: list[int] = []
     i = j = 0
 
     while i < len(left) and j < len(right):
@@ -32,7 +32,7 @@ def merge_and(left: list[int], right: list[int]) -> list[int]:
 
 def merge_or(left: list[int], right: list[int]) -> list[int]:
     """Union of two sorted document ID lists."""
-    result = []
+    result: list[int] = []
     i = j = 0
 
     while i < len(left) and j < len(right):
@@ -54,7 +54,7 @@ def merge_or(left: list[int], right: list[int]) -> list[int]:
 
 def merge_not(universe: list[int], excluded: list[int]) -> list[int]:
     """Return document IDs not present in excluded."""
-    result = []
+    result: list[int] = []
     i = j = 0
 
     while i < len(universe):
@@ -73,7 +73,7 @@ def merge_not(universe: list[int], excluded: list[int]) -> list[int]:
 def parse_query(query: str) -> list[str]:
     """Convert a Boolean query into postfix notation."""
     raw_parts = re.findall(r"\(|\)|[^\s()]+", query)
-    parts = []
+    parts: list[str] = []
 
     for raw in raw_parts:
         if raw in ("(", ")"):
@@ -102,8 +102,8 @@ def parse_query(query: str) -> list[str]:
 
         parts.append(token)
 
-    output = []
-    operators = []
+    output: list[str] = []
+    operators: list[str] = []
 
     for token in parts:
         if token == "(":

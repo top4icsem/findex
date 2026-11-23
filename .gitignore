@@ -15,3 +15,11 @@ data/
 /index.json
 
 .DS_Store
+
+.hypothesis/
+
+.coverage
+
+htmlcov/
+
+*.egg-info/

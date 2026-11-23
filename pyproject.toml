@@ -1,10 +1,16 @@
 [project]
 name = "findex"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.4.0"
+description = "A typed Python text search engine with Boolean and ranked retrieval"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "rich>=15.0.0",
+    "typer>=0.29.2",
+]
+
+[project.scripts]
+findex = "findex.cli:app"
 
 [build-system]
 requires = ["uv_build>=0.13.9,<0.14.0"]
@@ -12,6 +18,17 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.170.17",
+    "pyright>=1.1.414",
     "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
     "ruff>=0.17.6",
 ]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+include = ["src/findex"]
+pythonVersion = "3.13"
+
+[tool.pytest.ini_options]
+markers = ["slow: tests taking more than one second"]

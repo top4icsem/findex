@@ -74,6 +74,10 @@ class RankedSearcher:
 
         self._matching_ids = matching_ids
 
+    def cache_stats(self) -> str:
+        """Expose cache information without leaking a private attribute."""
+        return str(self._matching_ids.cache_info())
+
     @timed
     def search(self, query: str, top_k: int = 5) -> list[SearchResult]:
         if top_k < 0:
@@ -91,7 +95,7 @@ class RankedSearcher:
         }
 
         # Compute numeric scores only for the Boolean-matching documents.
-        scored = []
+        scored: list[tuple[float, int, int]] = []
         for doc_id in doc_ids:
             meta = self.index.documents[doc_id]
             score = sum(
@@ -157,7 +161,7 @@ def main() -> None:
                 else:
                     display = result.snippet
                 print(f"    {display}")
-        print(f"Cache stats: {ranked._matching_ids.cache_info()}")
+        print(f"Cache stats: {ranked.cache_stats()}")
 
 
 if __name__ == "__main__":

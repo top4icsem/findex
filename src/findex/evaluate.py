@@ -84,7 +84,7 @@ def score_judgments(path: Path) -> None:
 
     if len(per_query) != 20 or any(len(v) != 5 for v in per_query.values()):
         raise ValueError("Expected 10 queries x 2 scorers x 5 ranks = 100 rows")
-    averages = {"tfidf": [], "bm25": []}
+    averages: dict[str, list[float]] = {"tfidf": [], "bm25": []}
     print("\nPrecision@5 (manual 0/1 relevance)")
     print("query_id  tfidf  bm25  query")
     for i, query in enumerate(QUERIES, start=1):

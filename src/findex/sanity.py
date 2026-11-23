@@ -3,11 +3,12 @@
 import argparse
 from pathlib import Path
 
+from findex.index import Index
 from findex.open_index import open_index
-from findex.scoring import BM25, Tfidf
+from findex.scoring import BM25, Scorer, Tfidf
 
 
-def check_ranking(index) -> None:
+def check_ranking(index: Index) -> None:
     words = [term for term in index if term.isalpha()]
     rare = min(words, key=lambda term: (index.df(term), term))
     common = max(words, key=lambda term: (index.df(term), term))
@@ -18,8 +19,11 @@ def check_ranking(index) -> None:
     print(f"rare={rare} df={index.df(rare)}; common={common} df={index.df(common)}")
     print(f"short={smallest.length} tokens; long={largest.length} tokens")
     for scorer in (Tfidf(), BM25()):
+        evaluator: Scorer = scorer
 
-        def score(tf: int, df: int, length: int, evaluator=scorer) -> float:
+        def score(
+            tf: int, df: int, length: int, evaluator: Scorer = evaluator
+        ) -> float:
             return evaluator.score(
                 tf=tf,
                 df=df,
@@ -54,7 +58,7 @@ def check_ranking(index) -> None:
             raise AssertionError("One or more sanity checks failed")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Run ranking sanity checks")
     parser.add_argument("index_file", type=Path)
     args = parser.parse_args()

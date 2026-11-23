@@ -2,15 +2,18 @@ import gc
 import sys
 import tracemalloc
 from collections import Counter
+from collections.abc import Callable
 from pathlib import Path
 from time import perf_counter
 
 from findex.corpus import iter_documents
 from findex.tokenize import tokenize
 
+type Statistics = tuple[int, int, int]
 
-def lazy_stats(root: Path):
-    counts = Counter()
+
+def lazy_stats(root: Path) -> Statistics:
+    counts: Counter[str] = Counter()
     documents = 0
     tokens = 0
 
@@ -24,9 +27,9 @@ def lazy_stats(root: Path):
     return documents, tokens, len(counts)
 
 
-def eager_stats(root: Path):
+def eager_stats(root: Path) -> Statistics:
     documents_list = list(iter_documents(root))
-    all_tokens = []
+    all_tokens: list[str] = []
 
     for document in documents_list:
         all_tokens.extend(list(tokenize(document.text)))
@@ -36,7 +39,9 @@ def eager_stats(root: Path):
     return len(documents_list), len(all_tokens), len(counts)
 
 
-def measure(name, function, root):
+def measure(
+    name: str, function: Callable[[Path], Statistics], root: Path
+) -> Statistics:
     gc.collect()
     tracemalloc.start()
     start = perf_counter()

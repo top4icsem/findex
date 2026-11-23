@@ -3,13 +3,14 @@ import gc
 import tracemalloc
 from array import array
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from statistics import median
 from time import perf_counter
 
 from findex.corpus import iter_documents
-from findex.index import Posting, build_index
+from findex.index import Index, Posting, build_index
 from findex.search import merge_and
 from findex.storage import load_index, save_index
 from findex.tokenize import tokenize
@@ -21,38 +22,54 @@ class RegularPosting:
     frequency: int
 
 
-def build_posting_variant(root: Path, kind: str):
-    """Build posting lists without document metadata."""
-    if kind == "array":
-        postings = defaultdict(lambda: (array("I"), array("I")))
-    else:
-        postings = defaultdict(list)
+type PostingVariants = (
+    defaultdict[str, list[RegularPosting]]
+    | defaultdict[str, list[Posting]]
+    | defaultdict[str, tuple[array[int], array[int]]]
+)
+
+type MemoryRow = tuple[str, int, int, int, float, float, float]
+
+
+def build_posting_variant(root: Path, kind: str) -> tuple[PostingVariants, int, int]:
+    """Build precisely one variant of postings, without document metadata."""
+    regular_postings: defaultdict[str, list[RegularPosting]] = defaultdict(list)
+    slot_postings: defaultdict[str, list[Posting]] = defaultdict(list)
+    array_postings: defaultdict[str, tuple[array[int], array[int]]] = defaultdict(
+        lambda: (array("I"), array("I"))
+    )
+    if kind not in {"regular", "slots", "array"}:
+        raise ValueError(f"Unknown variant: {kind}")
 
     documents = 0
-
     for doc_id, document in enumerate(iter_documents(root)):
         documents += 1
-        frequencies = Counter(tokenize(document.text))
-
+        frequencies: Counter[str] = Counter(tokenize(document.text))
         for term, frequency in frequencies.items():
             if kind == "regular":
-                postings[term].append(RegularPosting(doc_id, frequency))
+                regular_postings[term].append(RegularPosting(doc_id, frequency))
             elif kind == "slots":
-                postings[term].append(Posting(doc_id, frequency))
+                slot_postings[term].append(Posting(doc_id, frequency))
             else:
-                doc_ids, frequencies_array = postings[term]
-                doc_ids.append(doc_id)
-                frequencies_array.append(frequency)
+                ids, counts = array_postings[term]
+                ids.append(doc_id)
+                counts.append(frequency)
 
-    count = sum(
-        len(value[0]) if kind == "array" else len(value) for value in postings.values()
-    )
+    if kind == "regular":
+        postings: PostingVariants = regular_postings
+        count = sum(map(len, regular_postings.values()))
+    elif kind == "slots":
+        postings = slot_postings
+        count = sum(map(len, slot_postings.values()))
+    else:
+        postings = array_postings
+        count = sum(len(pair[0]) for pair in array_postings.values())
 
     return postings, documents, count
 
 
-def benchmark_memory(root: Path):
-    rows = []
+def benchmark_memory(root: Path) -> None:
+    rows: list[MemoryRow] = []
 
     for kind in ("regular", "slots", "array"):
         gc.collect()
@@ -94,8 +111,8 @@ def benchmark_memory(root: Path):
         )
 
 
-def time_per_call(action, repeats: int = 1000) -> float:
-    samples = []
+def time_per_call(action: Callable[[], object], repeats: int = 1000) -> float:
+    samples: list[float] = []
 
     for _ in range(5):
         start = perf_counter()
@@ -108,7 +125,7 @@ def time_per_call(action, repeats: int = 1000) -> float:
     return median(samples)
 
 
-def benchmark_search(index, repeats: int):
+def benchmark_search(index: Index, repeats: int) -> None:
     totals = {
         term: sum(p.frequency for p in posting_list)
         for term, posting_list in index.postings.items()
@@ -134,8 +151,12 @@ def benchmark_search(index, repeats: int):
         left = [p.doc_id for p in index.postings[terms[0]]]
         right = [p.doc_id for p in index.postings[terms[1]]]
 
-        merge_fn = lambda left=left, right=right: merge_and(left, right)
-        set_fn = lambda left=left, right=right: sorted(set(left) & set(right))
+        # Bind the current iteration explicitly; avoids a late-bound closure.
+        def merge_fn(left: list[int] = left, right: list[int] = right) -> list[int]:
+            return merge_and(left, right)
+
+        def set_fn(left: list[int] = left, right: list[int] = right) -> list[int]:
+            return sorted(set(left) & set(right))
 
         matches = merge_fn()
         assert matches == set_fn()
@@ -150,7 +171,7 @@ def benchmark_search(index, repeats: int):
         )
 
 
-def benchmark_storage(index, root: Path, repeats: int = 3):
+def benchmark_storage(index: Index, root: Path, repeats: int = 3) -> None:
     print("\nSTORAGE (median ms, file size in MiB)")
     print("format       file_MiB     save_ms     load_ms   verified")
 
@@ -159,8 +180,8 @@ def benchmark_storage(index, root: Path, repeats: int = 3):
         ("json", "json"),
     ):
         path = root / f"_bench_index.{extension}"
-        save_samples = []
-        load_samples = []
+        save_samples: list[float] = []
+        load_samples: list[float] = []
 
         for _ in range(repeats):
             start = perf_counter()

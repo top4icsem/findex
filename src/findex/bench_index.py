@@ -114,15 +114,13 @@ def benchmark_search(index, repeats: int):
         for term, posting_list in index.postings.items()
     }
 
-    words = [term for term in totals if term.isalpha()]
-
     frequent = sorted(
-        words,
+        totals,
         key=lambda term: (-totals[term], term),
     )[:2]
 
     rare = sorted(
-        words,
+        totals,
         key=lambda term: (totals[term], term),
     )[:2]
 

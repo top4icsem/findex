@@ -13,3 +13,5 @@ data/
 
 /index.bin
 /index.json
+
+.DS_Store

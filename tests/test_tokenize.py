@@ -1,4 +1,3 @@
-
 import pytest
 
 from findex.tokenize import tokenize
@@ -42,4 +41,3 @@ def test_tokenize_is_generator():
 
     with pytest.raises(StopIteration):
         next(result)
-

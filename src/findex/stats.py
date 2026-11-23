@@ -1,4 +1,3 @@
-
 import argparse
 import tracemalloc
 from collections import Counter
@@ -84,4 +83,3 @@ if __name__ == "__main__":
     print("\nTop 50 terms:")
     for term, count in stats.top_terms:
         print(f"{term}: {count}")
-

@@ -1,4 +1,3 @@
-
 import random
 from pathlib import Path
 
@@ -32,4 +31,3 @@ for index in range(DOCUMENT_COUNT):
             file.write(random.choice(PARAGRAPHS) + "\n")
 
 print(f"Generated {DOCUMENT_COUNT} documents in {OUTPUT_DIR}/")
-

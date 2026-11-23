@@ -1,4 +1,3 @@
-
 import gc
 import sys
 import tracemalloc
@@ -68,4 +67,3 @@ if __name__ == "__main__":
     eager_result = measure("EAGER", eager_stats, root)
 
     print("\nResults match:", lazy_result == eager_result)
-

@@ -1,4 +1,3 @@
-
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,4 +26,3 @@ def iter_documents(root: Path) -> Iterator[Document]:
             path=path,
             text=text,
         )
-

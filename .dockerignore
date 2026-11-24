@@ -1,0 +1,16 @@
+.git
+.venv
+.venv313t
+__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.pyright
+*.pyc
+*.bin
+index.json
+crawl/
+crawl.log
+*.log
+docs/lab07_oha/
+dist/

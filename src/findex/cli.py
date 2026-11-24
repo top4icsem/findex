@@ -26,6 +26,7 @@ from findex.ranking import RankedSearcher
 from findex.scoring import BM25, Scorer, Tfidf
 from findex.stats import collect_stats
 from findex.storage import save_index
+from findex.web.serve import serve_command
 
 app = typer.Typer(
     help="Findex: index and search a local text corpus.", no_args_is_help=True
@@ -360,6 +361,9 @@ def stats_command(
     ):
         table.add_row(key, value)
     console.print(table)
+
+
+app.command("serve")(serve_command)
 
 
 def main() -> None:

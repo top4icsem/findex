@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Документ {{ document.doc_id }} · Findex{% endblock %}
+{% block content %}
+<div class="document-page">
+ <a class="back-link" href="/">← Повернутися до пошуку</a>
+ <div class="eyebrow">DOCUMENT / #{{ document.doc_id }}</div>
+ <h1 class="doc-title">Документ #{{ document.doc_id }}</h1>
+ <div class="doc-meta"><span>Шлях: {{ document.path }}</span><span>Токенів: {{ document.length }}</span></div>
+ <article class="doc-content">{{ document.text }}</article>
+</div>
+{% endblock %}

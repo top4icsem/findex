@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: findex-web-search
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: INDEX_PATH
+        value: /app/demo_index.json
+      - key: ENABLE_BENCH_ENDPOINTS
+        value: "0"
+      - key: WEB_CONCURRENCY
+        value: "1"

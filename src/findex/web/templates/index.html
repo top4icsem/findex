@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Findex — розумний пошук{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="eyebrow"><span class="pill-dot"></span> SEARCH ENGINE / V0.7</div>
+  <h1>Знайди потрібне.<br><span>За лічені миті.</span></h1>
+  <p class="subtitle">Пошук по {{ num_docs }} індексованих документах з підтримкою логічних операторів, BM25 та TF-IDF.</p>
+  <form class="search-panel" method="get" action="/" role="search">
+    <label class="sr-only" for="search-q">Пошуковий запит</label>
+    <div class="search-field">
+      <svg aria-hidden="true" width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <input autofocus type="search" id="search-q" name="q" value="{{ q }}" maxlength="500" placeholder='Наприклад: python AND "search engine"' required>
+      <button type="submit" class="search-button">Знайти <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="controls">
+      <label>Ранжування
+        <select name="scorer"><option value="bm25" {% if scorer == 'bm25' %}selected{% endif %}>BM25</option><option value="tfidf" {% if scorer == 'tfidf' %}selected{% endif %}>TF-IDF</option></select>
+      </label>
+      <label>На сторінці
+        <select name="k"><option value="5" {% if k == 5 %}selected{% endif %}>5</option><option value="10" {% if k == 10 %}selected{% endif %}>10</option><option value="20" {% if k == 20 %}selected{% endif %}>20</option></select>
+      </label>
+      <span class="hint">Підтримуються <code>AND</code>, <code>OR</code>, <code>NOT</code>, дужки та фрази</span>
+    </div>
+  </form>
+</section>
+{% if error %}<div class="notice error" role="alert">Некоректний запит: {{ error }}</div>{% endif %}
+{% if results %}
+  <div class="results-head">
+    <div><div class="section-label">РЕЗУЛЬТАТИ ПОШУКУ</div><h2>{{ results.total }} документів знайдено</h2></div>
+    <div class="result-meta">{{ results.scorer | upper }} <span>·</span> сторінка {{ results.page }} / {{ results.pages if results.pages else 1 }}</div>
+  </div>
+  {% if results.results %}
+  <ol class="results" start="{{ (results.page - 1) * results.k + 1 }}">
+    {% for result in results.results %}
+    <li class="result">
+      <div class="result-main"><div class="result-path">{{ result.path }}</div><h3><a href="/view/{{ result.doc_id }}">Документ #{{ result.doc_id }} <span aria-hidden="true">↗</span></a></h3><p>{{ result.snippet | highlight }}</p></div>
+      <div class="score"><span>RELEVANCE</span><strong>{{ "%.5f" | format(result.score) }}</strong></div>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}<div class="empty">На цій сторінці результатів немає. Спробуй інший запит або повернись на першу сторінку.</div>{% endif %}
+  {% if results.pages > 1 %}
+  <nav class="pagination" aria-label="Сторінки результатів">
+    {% if results.page > 1 %}<a href="/?q={{ q|urlencode }}&k={{ k }}&scorer={{ scorer }}&page={{ results.page-1 }}">← Попередня</a>{% else %}<span class="disabled">← Попередня</span>{% endif %}
+    <span>{{ results.page }} / {{ results.pages }}</span>
+    {% if results.page < results.pages %}<a href="/?q={{ q|urlencode }}&k={{ k }}&scorer={{ scorer }}&page={{ results.page+1 }}">Наступна →</a>{% else %}<span class="disabled">Наступна →</span>{% endif %}
+  </nav>
+  {% endif %}
+{% elif not q %}
+  <div class="intro-tiles"><div><span class="tile-num">01 /</span><h3>Boolean queries</h3><p>Комбінуй слова через AND, OR та NOT, щоб знаходити точні збіги.</p></div><div><span class="tile-num">02 /</span><h3>Smart ranking</h3><p>Порівнюй результати за двома алгоритмами: BM25 і TF-IDF.</p></div><div><span class="tile-num">03 /</span><h3>Open API</h3><p>Звертайся до тих самих документів через HTTP та Swagger UI.</p></div></div>
+{% endif %}
+{% endblock %}

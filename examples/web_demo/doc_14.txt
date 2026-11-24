@@ -1,0 +1,5 @@
+Document 14 - Python web search demonstration
+Findex is a Python search engine with an inverted index, Boolean search, BM25 ranking, and TF-IDF scoring.
+FastAPI provides HTTP endpoints to search documents. Pydantic validates queries and responses. Uvicorn hosts the ASGI application.
+AsyncIO helps network I/O while multi-process workers may improve CPU bound workload under the GIL.
+This educational demo corpus contains only synthetic texts and no real user information. Document 14.

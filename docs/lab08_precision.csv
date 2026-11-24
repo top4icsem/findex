@@ -1,0 +1,46 @@
+id,query,mode,p_at_5
+lab03-1,python search,lexical,1.000
+lab03-1,python search,semantic,0.200
+lab03-1,python search,hybrid,0.000
+lab03-2,memory optimization,lexical,1.000
+lab03-2,memory optimization,semantic,0.000
+lab03-2,memory optimization,hybrid,0.000
+lab03-3,information retrieval,lexical,1.000
+lab03-3,information retrieval,semantic,0.000
+lab03-3,information retrieval,hybrid,0.400
+lab03-4,machine learning,lexical,1.000
+lab03-4,machine learning,semantic,0.000
+lab03-4,machine learning,hybrid,0.400
+lab03-5,unicode normalization,lexical,1.000
+lab03-5,unicode normalization,semantic,0.000
+lab03-5,unicode normalization,hybrid,0.200
+lab03-6,search engine,lexical,1.000
+lab03-6,search engine,semantic,0.200
+lab03-6,search engine,hybrid,0.200
+lab03-7,document tokens,lexical,1.000
+lab03-7,document tokens,semantic,0.200
+lab03-7,document tokens,hybrid,0.600
+lab03-8,data structures,lexical,1.000
+lab03-8,data structures,semantic,0.000
+lab03-8,data structures,hybrid,0.600
+lab03-9,generators python,lexical,1.000
+lab03-9,generators python,semantic,0.000
+lab03-9,generators python,hybrid,0.400
+lab03-10,performance evaluation,lexical,1.000
+lab03-10,performance evaluation,semantic,0.000
+lab03-10,performance evaluation,hybrid,0.600
+para-01,ways to cut RAM overhead when handling large collections,lexical,0.000
+para-01,ways to cut RAM overhead when handling large collections,semantic,1.000
+para-01,ways to cut RAM overhead when handling large collections,hybrid,1.000
+para-02,locating useful passages inside a group of written records,lexical,0.000
+para-02,locating useful passages inside a group of written records,semantic,0.000
+para-02,locating useful passages inside a group of written records,hybrid,0.000
+para-03,software techniques for handling non-ASCII characters consistently,lexical,0.200
+para-03,software techniques for handling non-ASCII characters consistently,semantic,0.000
+para-03,software techniques for handling non-ASCII characters consistently,hybrid,0.000
+para-04,how code executes tasks without loading every item at once,lexical,0.000
+para-04,how code executes tasks without loading every item at once,semantic,0.000
+para-04,how code executes tasks without loading every item at once,hybrid,0.000
+para-05,strategies for improving response time when users ask for documents,lexical,0.000
+para-05,strategies for improving response time when users ask for documents,semantic,0.000
+para-05,strategies for improving response time when users ask for documents,hybrid,0.000

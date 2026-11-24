@@ -1,0 +1,7 @@
+scorer,query_type,query,python_ms,numpy_ms,speedup
+BM25,frequent,python,0.491251,0.045979,10.684
+BM25,rare,0,0.003729,0.010875,0.343
+BM25,three_terms,python OR a OR search,1.144875,0.083625,13.691
+TF-IDF,frequent,python,0.473625,0.048333,9.799
+TF-IDF,rare,0,0.003500,0.010895,0.321
+TF-IDF,three_terms,python OR a OR search,1.043375,0.086542,12.056

@@ -1,3 +1,18 @@
+<!-- LAB08_LANDING_START -->
+# Findex — пошук документів: від токенізатора до API й NumPy
+
+[Findex Live / Render](https://findex-web-search.onrender.com/) · [API](https://findex-web-search.onrender.com/docs)
+
+![Демонстрація пошуку Findex](docs/images/findex_demo.gif)
+
+**Корпус:** 1002 локальних документи (демо на Render: 18) · **p95:** 726.22 мс (Render, ЛР7; нове вимірювання потрібне) · **Найбільше прискорення:** 13.69× (NumPy; three_terms, BM25).
+
+**GIF пошуку:** потрібно записати реальне демо у `docs/images/findex_demo.gif`.
+
+[Схема потоку даних](docs/lab08_architecture.md) · [Зведені таблиці ЛР1–8](docs/ALL_METRICS.md) · [Обмеження й відтворення](#лабораторна-8---профілювання-numpy-та-семантичний-пошук)
+
+<!-- LAB08_LANDING_END -->
+
 **Публічна вебверсія Findex (ЛР №7):** [Відкрити сайт](https://findex-web-search.onrender.com/)
 
 
@@ -1259,3 +1274,55 @@ Python-коду в потоках.
 - Docker: успішна збірка та HTTP 200 для health і search.
 - Render: Live, тариф Free.
 <!-- LAB07_RESULTS_END -->
+
+<!-- LAB08_START -->
+## Лабораторна №8 — профілювання, NumPy та семантичний пошук
+
+**Відеодемонстрація ЛР №8:** [Переглянути відео](https://drive.google.com/file/d/1zzbnYSbRHdEdc-22zrDVg2K6VlDIiSdW/view?usp=sharing)
+
+**Версія:** 1.0.0 · **Публічне демо:** https://findex-web-search.onrender.com/
+
+**Реалізовано:** cProfile та сценарій py-spy, NumPy int32 колонки постінгів і довжин, векторні BM25/TF-IDF, top-k через `np.argpartition` з правильним розв'язанням нічиїх, ембединги MiniLM за фрагментами, косинусна подібність, RRF, `findex embed`, `findex search --mode semantic/hybrid`, API та UI.
+
+**Схема даних:** [docs/lab08_architecture.md](docs/lab08_architecture.md).
+
+### Реальні результати (доповнити після вимірів)
+
+- Повний локальний корпус із попередніх лабораторних: **1002 документи**; на публічному демо встановлено інший, малий корпус із **18 документів**.
+- Виміряне раніше p95 публічного Render Free (`oha`, ЛР №7): **726.22 мс** (це не p95 після оновлення до 1.0.0).
+- Максимальне прискорення NumPy: **визначається командою** `uv run python -m findex.bench_lab08 --index index.bin`.
+- Таблиця скорерів із частим, рідкісним і тритерміним запитами: [docs/lab08_scoring.md](docs/lab08_scoring.md) *(генерується)*.
+- Precision@5 з 10 розміченими запитами + 5 вручну оціненими парафразами: [docs/lab08_precision.csv](docs/lab08_precision.csv) *(генерується лише після ручної розмітки)*.
+- Три гарячі місця з cProfile / py-spy / Scalene: [docs/lab08_profile_notes.md](docs/lab08_profile_notes.md).
+- Flame graphs: `docs/lab08_profile/build_flame.svg` і `docs/lab08_profile/search_flame.svg` *(отримати на своєму Mac)*.
+
+### Відтворення
+
+```bash
+uv lock && uv sync
+uv run findex index data/ --out index.bin --positions
+uv run python -m findex.bench_lab08 --index index.bin --repeat 30
+bash scripts/profile_lab08.sh
+uv sync --extra semantic
+uv run findex embed index.bin --out embeddings.npy
+uv run findex search index.bin 'python AND search' --mode lexical
+uv run findex search index.bin 'language models for retrieval' --mode semantic --embeddings embeddings.npy
+uv run findex search index.bin 'language models for retrieval' --mode hybrid --embeddings embeddings.npy
+EMBEDDINGS_PATH=embeddings.npy INDEX_PATH=index.bin uv run findex serve --port 8000
+uv run pytest -q
+```
+
+Для публічного семантичного режиму необхідно окремо розмістити векторний індекс і модель на сервері з достатньою пам'яттю. **Render Free за замовчуванням обслуговує lexical і не завантажує MiniLM.** Відсутність `EMBEDDINGS_PATH` повертає 422 для semantic/hybrid; це явне обмеження, а не прихована помилка.
+
+### Обмеження і висновки
+
+- NumPy не обов'язково виграє на дуже коротких списках постінгів: є витрати на створення масивів і пошук індексів.
+- Вибір межі top-k важливий: `argpartition` не гарантує стабільного порядку при рівних балах; після вибору порогу потрібне сортування `(score desc, doc_id asc)`.
+- MiniLM при першому запуску завантажується з мережі, а torch може потребувати більше RAM, ніж має безкоштовний вебінстанс.
+- Синтетичний корпус із 1002 документів не відображає складність великих реальних архівів. Precision@5 залежить від якості розмітки.
+- CPU-bound індексація з ЛР №5 використовує процеси; I/O-bound краулер ЛР №6 — asyncio; вебсервер ЛР №7 використовує пул потоків для sync endpoint.
+
+**GIF пошуку:** додати власний запис `docs/images/findex_demo.gif` (не підміняти фальшивим GIF).
+
+**Відео захисту (2–3 хв):** додати URL до власного ролика після запису.
+<!-- LAB08_END -->

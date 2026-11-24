@@ -22,3 +22,11 @@ jobs:
         run: uv run --locked pyright
       - name: Pytest and coverage
         run: uv run --locked pytest -q --cov=findex --cov-report=term-missing
+
+      - name: Lab 08 benchmark results
+        run: uv run --locked pytest -q tests/test_lab08_benchmarks.py --benchmark-only --benchmark-json=lab08_benchmark.json
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab08-benchmark
+          path: lab08_benchmark.json

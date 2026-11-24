@@ -1,0 +1,38 @@
+         39317 function calls (39288 primitive calls) in 0.006 seconds
+
+   Ordered by: cumulative time
+   List reduced from 154 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.006    0.006 profile_lab08.py:47(<lambda>)
+        1    0.000    0.000    0.006    0.006 timing.py:12(wrapper)
+        1    0.000    0.000    0.006    0.006 ranking.py:81(search)
+1002/1001    0.000    0.000    0.004    0.000 {built-in method builtins.sum}
+     4004    0.001    0.000    0.004    0.000 ranking.py:101(<genexpr>)
+        5    0.001    0.000    0.001    0.000 ranking.py:35(make_snippet)
+     3003    0.001    0.000    0.001    0.000 scoring.py:45(score)
+     3403    0.001    0.000    0.001    0.000 index.py:70(df)
+     3004    0.000    0.000    0.000    0.000 index.py:60(num_docs)
+     6412    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+       23    0.000    0.000    0.000    0.000 {built-in method builtins.min}
+      400    0.000    0.000    0.000    0.000 ranking.py:54(<lambda>)
+        5    0.000    0.000    0.000    0.000 _local.py:539(read_text)
+        5    0.000    0.000    0.000    0.000 _abc.py:628(read_text)
+6611/6604    0.000    0.000    0.000    0.000 {built-in method builtins.len}
+        5    0.000    0.000    0.000    0.000 _local.py:529(open)
+        5    0.000    0.000    0.000    0.000 {built-in method _io.open}
+        1    0.000    0.000    0.000    0.000 ranking.py:71(matching_ids)
+        5    0.000    0.000    0.000    0.000 __init__.py:287(compile)
+        5    0.000    0.000    0.000    0.000 __init__.py:330(_compile)
+     3003    0.000    0.000    0.000    0.000 {built-in method math.log1p}
+     3011    0.000    0.000    0.000    0.000 {built-in method builtins.max}
+        1    0.000    0.000    0.000    0.000 _compiler.py:743(compile)
+     1137    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+      2/1    0.000    0.000    0.000    0.000 query_ast.py:78(evaluate)
+        2    0.000    0.000    0.000    0.000 query_ast.py:204(parse_query)
+        3    0.000    0.000    0.000    0.000 query_ast.py:34(evaluate)
+        1    0.000    0.000    0.000    0.000 functools.py:1009(__get__)
+        1    0.000    0.000    0.000    0.000 index.py:64(avg_doc_length)
+        1    0.000    0.000    0.000    0.000 _parser.py:970(parse)
+
+

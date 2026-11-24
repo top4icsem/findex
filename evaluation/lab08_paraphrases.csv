@@ -1,0 +1,6 @@
+id,query,relevant_doc_ids,notes
+para-01,ways to cut RAM overhead when handling large collections,63;285;294;27;82,Candidate IDs - manual verification required
+para-02,locating useful passages inside a group of written records,763;975;741;974;471,Candidate IDs - manual verification required
+para-03,software techniques for handling non-ASCII characters consistently,836;333;180;142;25,Candidate IDs - manual verification required
+para-04,how code executes tasks without loading every item at once,254;928;357;772;170,Candidate IDs - manual verification required
+para-05,strategies for improving response time when users ask for documents,763;975;741;946;214,Candidate IDs - manual verification required

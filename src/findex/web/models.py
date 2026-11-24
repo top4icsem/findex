@@ -1,4 +1,4 @@
-"""Validation and serialization at the HTTP boundary only."""
+"""HTTP validation models. Internal search data stays as dataclasses."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ class SearchQuery(BaseModel):
     q: str = Field(min_length=1, max_length=500)
     k: int = Field(default=10, ge=1, le=50)
     scorer: Literal["bm25", "tfidf"] = "bm25"
+    mode: Literal["lexical", "semantic", "hybrid"] = "lexical"
     page: int = Field(default=1, ge=1, le=1000)
 
 
@@ -24,6 +25,7 @@ class ResultModel(BaseModel):
 class SearchPage(BaseModel):
     q: str
     scorer: Literal["bm25", "tfidf"]
+    mode: Literal["lexical", "semantic", "hybrid"] = "lexical"
     k: int
     page: int
     total: int

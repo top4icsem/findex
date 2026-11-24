@@ -25,3 +25,9 @@ htmlcov/
 *.egg-info/
 
 .venv313t/
+
+# Lab 08 local generated data
+*.lab07.bak
+embeddings.npy
+embeddings.json
+*.pstats

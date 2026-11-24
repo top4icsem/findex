@@ -2,7 +2,7 @@
 {% block title %}Findex — розумний пошук{% endblock %}
 {% block content %}
 <section class="hero">
-  <div class="eyebrow"><span class="pill-dot"></span> SEARCH ENGINE / V0.7</div>
+  <div class="eyebrow"><span class="pill-dot"></span> SEARCH ENGINE / V1.0</div>
   <h1>Знайди потрібне.<br><span>За лічені миті.</span></h1>
   <p class="subtitle">Пошук по {{ num_docs }} індексованих документах з підтримкою логічних операторів, BM25 та TF-IDF.</p>
   <form class="search-panel" method="get" action="/" role="search">
@@ -15,6 +15,13 @@
     <div class="controls">
       <label>Ранжування
         <select name="scorer"><option value="bm25" {% if scorer == 'bm25' %}selected{% endif %}>BM25</option><option value="tfidf" {% if scorer == 'tfidf' %}selected{% endif %}>TF-IDF</option></select>
+      </label>
+      <label>Режим пошуку
+        <select name="mode">
+          <option value="lexical" {% if mode == 'lexical' %}selected{% endif %}>Лексичний / NumPy</option>
+          <option value="semantic" {% if mode == 'semantic' %}selected{% endif %}>Семантичний / MiniLM</option>
+          <option value="hybrid" {% if mode == 'hybrid' %}selected{% endif %}>Гібридний / RRF</option>
+        </select>
       </label>
       <label>На сторінці
         <select name="k"><option value="5" {% if k == 5 %}selected{% endif %}>5</option><option value="10" {% if k == 10 %}selected{% endif %}>10</option><option value="20" {% if k == 20 %}selected{% endif %}>20</option></select>
@@ -41,9 +48,9 @@
   {% else %}<div class="empty">На цій сторінці результатів немає. Спробуй інший запит або повернись на першу сторінку.</div>{% endif %}
   {% if results.pages > 1 %}
   <nav class="pagination" aria-label="Сторінки результатів">
-    {% if results.page > 1 %}<a href="/?q={{ q|urlencode }}&k={{ k }}&scorer={{ scorer }}&page={{ results.page-1 }}">← Попередня</a>{% else %}<span class="disabled">← Попередня</span>{% endif %}
+    {% if results.page > 1 %}<a href="/?q={{ q|urlencode }}&k={{ k }}&scorer={{ scorer }}&mode={{ mode }}&page={{ results.page-1 }}">← Попередня</a>{% else %}<span class="disabled">← Попередня</span>{% endif %}
     <span>{{ results.page }} / {{ results.pages }}</span>
-    {% if results.page < results.pages %}<a href="/?q={{ q|urlencode }}&k={{ k }}&scorer={{ scorer }}&page={{ results.page+1 }}">Наступна →</a>{% else %}<span class="disabled">Наступна →</span>{% endif %}
+    {% if results.page < results.pages %}<a href="/?q={{ q|urlencode }}&k={{ k }}&scorer={{ scorer }}&mode={{ mode }}&page={{ results.page+1 }}">Наступна →</a>{% else %}<span class="disabled">Наступна →</span>{% endif %}
   </nav>
   {% endif %}
 {% elif not q %}

@@ -18,6 +18,7 @@ from markupsafe import Markup, escape
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
+from findex.semantic import EmbeddingStore
 from findex.storage import load_index
 from findex.web.models import (
     DocumentModel,
@@ -47,9 +48,10 @@ def get_search_query(
     q: Annotated[str, Query(min_length=1, max_length=500)],
     k: Annotated[int, Query(ge=1, le=50)] = 10,
     scorer: Literal["bm25", "tfidf"] = "bm25",
+    mode: Literal["lexical", "semantic", "hybrid"] = "lexical",
     page: Annotated[int, Query(ge=1, le=1000)] = 1,
 ) -> SearchQuery:
-    return SearchQuery(q=q, k=k, scorer=scorer, page=page)
+    return SearchQuery(q=q, k=k, scorer=scorer, mode=mode, page=page)
 
 
 SearchParams = Annotated[SearchQuery, Depends(get_search_query)]
@@ -80,7 +82,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     "json" if config.index_path.suffix.lower() == ".json" else "pickle"
                 )
                 index = load_index(config.index_path, file_format)
-                application.state.service = SearchService(index)
+                embeddings = None
+                if (
+                    config.embeddings_path is not None
+                    and config.embeddings_path.is_file()
+                ):
+                    embeddings = EmbeddingStore.load(config.embeddings_path, index)
+                application.state.service = SearchService(index, embeddings)
                 logger.info(
                     "Loaded %d documents from %s", index.num_docs, config.index_path
                 )
@@ -98,8 +106,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     application = FastAPI(
         title="Findex Search API",
-        version="0.7.0",
-        description="Boolean search with ranked BM25 and TF-IDF results.",
+        version="1.0.0",
+        description="Fast NumPy lexical ranking, MiniLM semantic search, and RRF hybrid.",
         lifespan=lifespan,
     )
     application.state.service = None
@@ -157,7 +165,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def search(params: SearchParams, service: Service) -> SearchPage:
         # Normal def: FastAPI offloads CPU-bound ranking to the threadpool.
         try:
-            return service.search(params.q, params.k, params.scorer, params.page)
+            return service.search(
+                params.q, params.k, params.scorer, params.page, params.mode
+            )
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -168,13 +178,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         q: Annotated[str, Query(max_length=500)] = "",
         k: Annotated[int, Query(ge=1, le=50)] = 10,
         scorer: Literal["bm25", "tfidf"] = "bm25",
+        mode: Literal["lexical", "semantic", "hybrid"] = "lexical",
         page: Annotated[int, Query(ge=1, le=1000)] = 1,
     ) -> Response:
         results: SearchPage | None = None
         error: str | None = None
         if q.strip():
             try:
-                results = service.search(q.strip(), k, scorer, page)
+                results = service.search(q.strip(), k, scorer, page, mode)
             except ValueError as exc:
                 error = str(exc)
         return templates.TemplateResponse(
@@ -185,6 +196,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "k": k,
                 "page": page,
                 "scorer": scorer,
+                "mode": mode,
                 "results": results,
                 "error": error,
                 "num_docs": service.index.num_docs,
@@ -208,14 +220,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "/_bench/sync", response_model=SearchPage, include_in_schema=False
         )
         def bench_sync(params: SearchParams, service: Service) -> SearchPage:
-            return service.search(params.q, params.k, params.scorer, params.page)
+            return service.search(
+                params.q, params.k, params.scorer, params.page, params.mode
+            )
 
         @application.get(
             "/_bench/async", response_model=SearchPage, include_in_schema=False
         )
         async def bench_async(params: SearchParams, service: Service) -> SearchPage:
             # INTENTIONALLY blocking: only for comparing the scheduling effect.
-            return service.search(params.q, params.k, params.scorer, params.page)
+            return service.search(
+                params.q, params.k, params.scorer, params.page, params.mode
+            )
 
     return application
 

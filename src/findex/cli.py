@@ -20,13 +20,16 @@ from rich.table import Table
 
 from findex.crawl_index import build_jsonl_index
 from findex.crawler import CrawlConfig, CrawlStats, canonicalize, crawl, origin_of
+from findex.lab08_commands import embed_command
+from findex.numpy_rank import NumpyRanker
 from findex.open_index import open_index
 from findex.parallel import ExecutorKind, build_parallel
-from findex.ranking import RankedSearcher
 from findex.scoring import BM25, Scorer, Tfidf
+from findex.semantic import EmbeddingStore
 from findex.stats import collect_stats
 from findex.storage import save_index
 from findex.web.serve import serve_command
+from findex.web.service import SearchService
 
 app = typer.Typer(
     help="Findex: index and search a local text corpus.", no_args_is_help=True
@@ -42,6 +45,12 @@ class ExecutorChoice(str, Enum):
     serial = "serial"
     threads = "threads"
     processes = "processes"
+
+
+class ModeChoice(str, Enum):
+    lexical = "lexical"
+    semantic = "semantic"
+    hybrid = "hybrid"
 
 
 class ScorerChoice(str, Enum):
@@ -294,6 +303,12 @@ def search_command(
         ScorerChoice, typer.Option("--scorer", help="Ranking model.")
     ] = ScorerChoice.bm25,
     top: Annotated[int, typer.Option("--top", help="Maximum number of matches.")] = 5,
+    mode: Annotated[
+        ModeChoice, typer.Option("--mode", help="lexical, semantic or hybrid")
+    ] = ModeChoice.lexical,
+    embeddings: Annotated[
+        Path, typer.Option("--embeddings", help=".npy embedding matrix")
+    ] = Path("embeddings.npy"),
     json_output: Annotated[
         bool, typer.Option("--json", help="Output machine-readable JSON only.")
     ] = False,
@@ -306,10 +321,16 @@ def search_command(
     scorer_name: ScorerName = "bm25" if scorer is ScorerChoice.bm25 else "tfidf"
     try:
         with open_index(index_file) as index:
-            results = RankedSearcher(index, _make_scorer(scorer_name)).search(
-                query, top_k=top
-            )
-    except (OSError, UnicodeError, ValueError, KeyError) as exc:
+            if mode is ModeChoice.lexical:
+                results = NumpyRanker(index, _make_scorer(scorer_name)).search(
+                    query, top_k=top
+                )
+            else:
+                store = EmbeddingStore.load(embeddings, index)
+                results = SearchService(index, store).ranked(
+                    query, top, scorer_name, mode.value
+                )
+    except (OSError, UnicodeError, ValueError, KeyError, RuntimeError) as exc:
         fail(str(exc))
 
     rows = [
@@ -324,7 +345,7 @@ def search_command(
     if json_output:
         typer.echo(json.dumps(rows, ensure_ascii=False))
         return
-    table = Table(title=f"Findex results ({scorer_name})")
+    table = Table(title=f"Findex results ({mode.value}, {scorer_name})")
     table.add_column("#", justify="right")
     table.add_column("Document")
     table.add_column("Score", justify="right")
@@ -364,6 +385,9 @@ def stats_command(
 
 
 app.command("serve")(serve_command)
+
+
+app.command("embed")(embed_command)
 
 
 def main() -> None:

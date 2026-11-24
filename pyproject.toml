@@ -5,6 +5,7 @@ description = "A typed Python text search engine with Boolean and ranked retriev
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "httpx>=0.27,<1",
     "rich>=15.0.0",
     "typer>=0.29.2",
 ]
@@ -18,6 +19,8 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "psutil>=6,<9",
+    "pytest-asyncio>=0.24",
     "hypothesis>=6.170.17",
     "matplotlib>=3.11.2",
     "pyright>=1.1.414",

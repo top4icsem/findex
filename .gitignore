@@ -23,3 +23,5 @@ data/
 htmlcov/
 
 *.egg-info/
+
+.venv313t/

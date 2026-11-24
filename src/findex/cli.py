@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
+import traceback
 from enum import Enum
 from pathlib import Path
 from typing import Annotated, Literal, NoReturn
@@ -14,8 +15,8 @@ from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from findex.index import build_index
 from findex.open_index import open_index
+from findex.parallel import ExecutorKind, build_parallel
 from findex.ranking import RankedSearcher
 from findex.scoring import BM25, Scorer, Tfidf
 from findex.stats import collect_stats
@@ -29,6 +30,12 @@ progress_console = Console(stderr=True)
 
 ScorerName = Literal["bm25", "tfidf"]
 StorageName = Literal["pickle", "json"]
+
+
+class ExecutorChoice(str, Enum):
+    serial = "serial"
+    threads = "threads"
+    processes = "processes"
 
 
 class ScorerChoice(str, Enum):
@@ -86,6 +93,11 @@ def index_command(
             help="Store token offsets for exact phrase searches.",
         ),
     ] = True,
+    workers: Annotated[int, typer.Option("--workers", min=1, help="Worker count.")] = 1,
+    executor: Annotated[
+        ExecutorChoice,
+        typer.Option("--executor", help="serial, threads or processes."),
+    ] = ExecutorChoice.processes,
 ) -> None:
     """Index text documents and save the index."""
     if not corpus.is_dir():
@@ -107,10 +119,28 @@ def index_command(
             def on_document(done: int) -> None:
                 progress.update(task, completed=min(done, max(1, total)))
 
-            index = build_index(corpus, with_positions=positions, progress=on_document)
+            mode: ExecutorKind = (
+                "serial"
+                if executor is ExecutorChoice.serial
+                else "threads"
+                if executor is ExecutorChoice.threads
+                else "processes"
+            )
+            result = build_parallel(
+                corpus,
+                executor=mode,
+                workers=workers,
+                with_positions=positions,
+                progress=on_document,
+            )
+            index = result.index
             progress.update(task, completed=max(1, total))
         save_index(index, out, _format_for(out))
     except (OSError, UnicodeError, ValueError) as exc:
+        if executor is not ExecutorChoice.serial:
+            # Worker failures must expose their (possibly remote) traceback.
+            traceback.print_exception(exc, file=sys.stderr)
+            raise typer.Exit(code=1) from None
         fail(str(exc))
     console.print(f"Indexed {index.num_docs} documents, {len(index)} terms -> {out}")
 
